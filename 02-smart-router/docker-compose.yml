@@ -1,0 +1,16 @@
+version: '3'
+
+services:
+
+  main:
+    build: ./landing-main
+
+  backup:
+    build: ./landing-backup
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "8081:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
