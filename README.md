@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 # Traffic Labs --- Edge Traffic Infrastructure
 
 Набор лабораторных стендов вокруг одной архитектуры обработки трафика.
@@ -10,12 +10,10 @@
 
 Основная идея — показать не отдельные сервисы, а архитектуру обработки трафика через несколько независимых слоёв: edge routing, decision layer и delivery layer.
 Проект не про лендинги как продукт. Лендинги используются только как backend для демонстрации инфраструктурного поведения.
->>>>>>> 0ddebca53dcebc26d0b43bf2cccb03756aa4616f
 
 Проект не имитирует production полностью, но повторяет архитектурные
 принципы, которые используются в edge-системах обработки трафика.
 
-<<<<<<< HEAD
 ------------------------------------------------------------------------
 
 ## Архитектура
@@ -52,12 +50,10 @@ Bot traffic
 ```
 nginx-exporter → Prometheus → Grafana
 ```
->>>>>>> 0ddebca53dcebc26d0b43bf2cccb03756aa4616f
 
 Каждый слой выполняет только одну задачу и не знает о внутренней логике
 остальных.
 
-<<<<<<< HEAD
 ------------------------------------------------------------------------
 
 ## Слои инфраструктуры
@@ -94,13 +90,11 @@ Edge слой.
 * направляет ботов на safe landing
 * передаёт основной трафик в tracker
 * отдаёт `/nginx_status` для exporter
->>>>>>> 0ddebca53dcebc26d0b43bf2cccb03756aa4616f
 
 -   анализ User-Agent
 -   разделение bot / human
 -   проксирование в tracker или safe landing
 
-<<<<<<< HEAD
 Router намеренно максимально простой. Он не занимается балансировкой и
 не содержит бизнес-логики.
 
@@ -120,13 +114,11 @@ Decision слой.
 * пишет decision-логи
 * проксирует запросы в load balancer
 * демонстрирует архитектуру multi-layer routing
->>>>>>> 0ddebca53dcebc26d0b43bf2cccb03756aa4616f
 
 -   логирование принятых решений
 -   изоляция логики от router
 -   проксирование трафика дальше
 
-<<<<<<< HEAD
 Tracker нужен, чтобы router оставался лёгким и не превращался в монолит.
 
 ------------------------------------------------------------------------
@@ -140,11 +132,9 @@ Delivery слой.
 * round-robin между landing1 / landing2 / landing3
 * не содержит логики фильтрации
 * отвечает только за распределение нагрузки
->>>>>>> 0ddebca53dcebc26d0b43bf2cccb03756aa4616f
 
 Отвечает только за распределение нагрузки:
 
-<<<<<<< HEAD
 -   round-robin между landing контейнерами
 -   никакой фильтрации
 -   никакой логики bot/human
@@ -161,11 +151,9 @@ Delivery слой.
 Fallback endpoint.
 
 Используется для bot traffic и тестирования маршрутизации.
->>>>>>> 0ddebca53dcebc26d0b43bf2cccb03756aa4616f
 
 ------------------------------------------------------------------------
 
-<<<<<<< HEAD
 ### Safe Landing
 
 Отдельный fallback endpoint для bot traffic и проверок.
@@ -173,12 +161,10 @@ Fallback endpoint.
 ------------------------------------------------------------------------
 
 =======
->>>>>>> 0ddebca53dcebc26d0b43bf2cccb03756aa4616f
 ### Monitoring
 
 Monitoring вынесен в отдельный стек:
 
-<<<<<<< HEAD
 edge-stack != monitoring
 
 Мониторинг не зависит от реализации роутинга и может использоваться
@@ -222,11 +208,9 @@ traffic-labs/
 │   └── prometheus.yml
 └── README.md
 ```
->>>>>>> 0ddebca53dcebc26d0b43bf2cccb03756aa4616f
 
 Он:
 
-<<<<<<< HEAD
 -   генерирует nginx конфиги из templates
 -   генерирует docker-compose
 -   управляет жизненным циклом инфраструктуры
@@ -246,11 +230,9 @@ restart.yml → рестарт
 * сбор runtime метрик nginx через exporter
 * отдельный monitoring стек
 * авто-деплой через Ansible
->>>>>>> 0ddebca53dcebc26d0b43bf2cccb03756aa4616f
 
 ------------------------------------------------------------------------
 
-<<<<<<< HEAD
 ## Структура репозитория
 
 traffic-labs/ ├── ansible/ │ ├── templates/ │ ├── group_vars/ │ ├──
@@ -263,13 +245,11 @@ prometheus.yml │ └── README.md
 ## Запуск
 
 ### Monitoring
->>>>>>> 0ddebca53dcebc26d0b43bf2cccb03756aa4616f
 
 ------------------------------------------------------------------------
 
 ## Быстрый старт
 
-<<<<<<< HEAD
 Запуск всей инфраструктуры:
 =======
 ```
@@ -277,15 +257,12 @@ Prometheus  — http://localhost:9090
 Grafana     — http://localhost:3000
 Exporter    — http://localhost:9113/metrics
 ```
->>>>>>> 0ddebca53dcebc26d0b43bf2cccb03756aa4616f
 
 ansible-playbook -i inventory.ini deploy.yml
 
-<<<<<<< HEAD
 Остановка:
 =======
 ### Edge Stack
->>>>>>> 0ddebca53dcebc26d0b43bf2cccb03756aa4616f
 
 ansible-playbook -i inventory.ini stop.yml
 
@@ -295,11 +272,9 @@ ansible-playbook -i inventory.ini restart.yml
 
 ------------------------------------------------------------------------
 
-<<<<<<< HEAD
 ## Проверка роутинга
 =======
 ### Авто-деплой
->>>>>>> 0ddebca53dcebc26d0b43bf2cccb03756aa4616f
 
 ```
 ansible-playbook -i ansible/inventory.ini ansible/deploy.yml
@@ -319,7 +294,6 @@ Bot traffic:
 
 curl -A "googlebot" localhost:8085
 
-<<<<<<< HEAD
 Mozilla → router → tracker → load balancer → landing\
 googlebot → router → safe landing
 
@@ -331,11 +305,9 @@ googlebot → router → safe landing
 Mozilla  → Router → Tracker → LoadBalancer → Landing
 googlebot → Router → Safe Landing
 ```
->>>>>>> 0ddebca53dcebc26d0b43bf2cccb03756aa4616f
 
 ## Логи
 
-<<<<<<< HEAD
 edge-stack/logs/router/\
 edge-stack/logs/tracker/\
 edge-stack/logs/lb/
@@ -356,14 +328,12 @@ logs/lb/
 Логи показывают путь запроса через инфраструктуру:
 
 ```
->>>>>>> 0ddebca53dcebc26d0b43bf2cccb03756aa4616f
 ROUTER → TRACKER → LB → LANDING
 
 ------------------------------------------------------------------------
 
-<<<<<<< HEAD
 ## Автор
 
 tragic / @trell
 =======
->>>>>>> 0ddebca53dcebc26d0b43bf2cccb03756aa4616f
+
