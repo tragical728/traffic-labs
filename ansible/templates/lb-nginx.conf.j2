@@ -8,10 +8,10 @@ http {
   access_log /var/log/nginx/lb_access.log lb_log;
 
   upstream landing_pool {
-        server landing1:80;
-        server landing2:80;
-        server landing3:80;
-    }
+  {% for landing in groups['landings'] %}
+      server {{ landing }}:80;
+  {% endfor %}
+  }
 
 
   server {

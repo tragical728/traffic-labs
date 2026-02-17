@@ -1,15 +1,34 @@
-- hosts: local
-  gather_facts: false
+- hosts: edge_nodes
+  become: true
 
   tasks:
 
-    - name: Start monitoring stack
-      command: docker compose up -d
+    - name: Render router config
+      template:
+        src: templates/router-nginx.conf.j2
+        dest: ../edge-stack/router-nginx.conf
+
+    - name: Render tracker config
+      template:
+        src: templates/tracker-nginx.conf.j2
+        dest: ../edge-stack/tracker/nginx.conf
+
+    - name: Render lb config
+      template:
+        src: templates/lb-nginx.conf.j2
+        dest: ../edge-stack/lb-nginx.conf
+
+    - name: Render docker compose
+      template:
+        src: templates/docker-compose.yml.j2
+        dest: "{{ playbook_dir }}/../edge-stack/docker-compose.yml"
+  
+    - name: Deploy edge stack
+      shell: docker compose up -d --build
       args:
-        chdir: ../monitoring
-    - name: Build and start edge stack
-      command: docker compose up -d --build
+        chdir: "{{ playbook_dir | dirname }}/edge-stack"
+
+    - name: Deploy monitoring stack
+      shell: docker compose up -d
       args:
-        chdir: ../edge-stack
-    - name: Show running containers
-      command: docker ps
+        chdir: "{{ playbook_dir | dirname }}/monitoring"

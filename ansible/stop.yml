@@ -1,0 +1,13 @@
+- hosts: edge_nodes
+  gather_facts: no
+
+  tasks:
+    - name: Stop edge stack
+      shell: docker compose down
+      args:
+        chdir: "{{ playbook_dir | dirname }}/edge-stack"
+
+    - name: Stop monitoring stack
+      shell: docker compose down
+      args:
+        chdir: "{{ playbook_dir | dirname }}/monitoring"

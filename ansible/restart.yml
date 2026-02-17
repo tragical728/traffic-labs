@@ -1,0 +1,23 @@
+- hosts: edge_nodes
+  gather_facts: no
+
+  tasks:
+    - name: Restart edge stack (down)
+      shell: docker compose down
+      args:
+        chdir: "{{ playbook_dir | dirname }}/edge-stack"
+
+    - name: Restart monitoring stack (down)
+      shell: docker compose down
+      args:
+        chdir: "{{ playbook_dir | dirname }}/monitoring"
+
+    - name: Start edge stack (up)
+      shell: docker compose up -d --build
+      args:
+        chdir: "{{ playbook_dir | dirname }}/edge-stack"
+
+    - name: Start monitoring stack (up)
+      shell: docker compose up -d
+      args:
+        chdir: "{{ playbook_dir | dirname }}/monitoring"

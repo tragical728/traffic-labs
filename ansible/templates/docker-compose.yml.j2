@@ -1,11 +1,9 @@
 services:
 
-  landing1:
+{% for landing in groups['landings'] %}
+  {{ landing }}:
     build: ./landing
-  landing2:
-    build: ./landing
-  landing3:
-    build: ./landing
+{% endfor %}
 
   safe-landing:
     build: ./safe-landing
@@ -21,7 +19,7 @@ services:
   router:
     image: nginx:alpine
     ports:
-      - "8085:80"
+      - "{{ router_port }}:80"
     volumes:
       - ./router-nginx.conf:/etc/nginx/nginx.conf
 
