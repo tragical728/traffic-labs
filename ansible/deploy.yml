@@ -1,10 +1,15 @@
 - hosts: local
+  gather_facts: false
+
   tasks:
+
     - name: Start monitoring stack
       command: docker compose up -d
       args:
         chdir: ../monitoring
-    - name: Start edge stack
+    - name: Build and start edge stack
       command: docker compose up -d --build
       args:
         chdir: ../edge-stack
+    - name: Show running containers
+      command: docker ps
