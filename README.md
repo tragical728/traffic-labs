@@ -1,11 +1,36 @@
-# ТЗшка трафф для @mastermind
-Производственная инфраструктура для высоконагруженного трафик-арбитража с контейнеризацией Docker, балансировкой нагрузки Nginx, автоматическим развертыванием и мониторингом.
+# Traffic Infrastructure Lab
 
-## Архитектура
+Production-like лаборатория инфраструктуры для высоконагруженного трафика.
+
+Репозиторий разделён на независимые лабы, каждая из которых показывает отдельный инфра уровень.
+
+---
+
+# 🧱 Архитектура репозитория
+
 ```
-Запрос клиента
+traffic-infrastructure-lab
+│
+├── 01-load-balancer   → Multi-container инфраструктура + мониторинг
+└── 02-smart-router    → Умный роутинг трафика + backup landing
+```
+
+---
+
+# 🔥 Labs
+
+---
+
+## 01 — Nginx Load Balancer Infrastructure
+
+Production-like инфраструктура балансировки трафика.
+
+### Архитектура
+
+```
+Client Request
       ↓
-   Nginx LB (Порт 8080)
+   Nginx LB (Port 8080)
       ↓
    ┌──────┴──────┬──────────┐
    ↓             ↓          ↓
@@ -14,102 +39,142 @@ Landing1     Landing2   Landing3...
 nginx-exporter → Prometheus → Grafana
 ```
 
-## Возможности
-- **Контейнеризация Docker** - Изолированные, портативные лендинги
-- **Балансировка нагрузки Nginx** - Распределение трафика между контейнерами
-- **Скрипт автоматического развертывания** - Деплой новых лендингов за секунды
-- **Мониторинг в реальном времени** - Дашборд Prometheus + Grafana
-- **Масштабируемая архитектура** - Готова для 50+ лендингов (но надо доработать авто-деплой)
+### Возможности
 
-## Стек
-- Docker & Docker Compose
-- Nginx (Alpine)
-- Prometheus
-- Grafana
-- Python (авто-деплой скрипт)
+* Docker контейнеризация лендингов
+* Nginx upstream load balancing
+* Авто-деплой новых лендингов
+* Prometheus + Grafana мониторинг
+* Масштабируемая архитектура
 
-## Быстрый старт
+### Стек
 
-### Требования
-- Установленный Docker Desktop
-- Python 3.x
+* Docker / Docker Compose
+* Nginx (Alpine)
+* Prometheus
+* Grafana
+* Python (auto deploy script)
 
-### Установка
+---
 
-1. Клонировать репозиторий
-```
-git clone https://github.com/yourusername/traffic-infrastructure-lab.git
-cd traffic-infrastructure-lab
-```
+## 02 — Smart Traffic Router
 
-2. Запустить инфраструктуру
-```
-docker-compose up -d --build
-```
+Лаборатория умного reverse proxy routing.
 
-3. Доступ к сервисам
-- Ленды: http://localhost:8080
-- Прометей: http://localhost:9090
-- Графана: http://localhost:3000 (admin/admin(попросит поменять))
-
-## Авто-деплой нового ленда
+### Архитектура
 
 ```
-python deploy.py landing5
+Client
+   ↓
+Nginx Smart Router
+   ↓            ↓
+Main Landing   Backup Landing
 ```
 
-Автоматически выполняет:
-- Создание нового контейнера
-- Добавление в upstream Nginx
-- Пересборку инфраструктуры
-- Обновление мониторинга
+### Что демонстрируется
 
-## Мониторинг
+* Routing по User-Agent
+* Backup fallback логика
+* Reverse proxy chaining
+* Access logs (IP + UA + upstream)
+* Docker network isolation
 
-### Настройка Grafana
+### Основная идея
 
-1. Открыть http://localhost:3000
-2. Войти: admin/admin
-3. Добавить источник данных Prometheus: http://prometheus:9090
-4. Импортировать дашборд ID: 12708
-PS либо самому дешборд с мтериками добавить, какие Вамм угодно.
+Router принимает входящий трафик и принимает решение:
+
+* бот → backup landing
+* обычный пользователь → основной поток
+
+---
+
+# 🚀 Быстрый старт
+
+## Требования
+
+* Docker Desktop
+* Python 3.x
+
+---
+
+## Запуск 01-load-balancer
+
+```
+cd 01-load-balancer
+docker compose up -d --build
+```
+
+Доступ:
+
+* Лендинги: http://localhost:8080
+* Prometheus: http://localhost:9090
+* Grafana: http://localhost:3000
+
+---
+
+## Запуск 02-smart-router
+
+```
+cd 02-smart-router
+docker compose up -d --build
+```
+
+Доступ:
+
+* Router: http://localhost:8081
+
+---
+
+# ⚙️ Авто-деплой лендинга (01-lab)
+
+```
+python auto-deploy.py landing5
+```
+
+Скрипт автоматически:
+
+* создаёт новый контейнер
+* обновляет upstream
+* пересобирает инфраструктуру
+* обновляет мониторинг
+
+---
+
+# 📊 Мониторинг
+
+### Grafana
+
+1. http://localhost:3000
+2. admin / admin
+3. Prometheus datasource:
+
+```
+http://prometheus:9090
+```
+
+Можно использовать dashboard ID: 12708
 
 ### Ключевые метрики
-- Активные соединения
-- Запросов в секунду
-- Статус upstream серверов
-- Распределение трафика
 
-## Конфигурация
+* Requests per second
+* Active connections
+* Upstream status
+* Traffic distribution
 
-### Балансировка нагрузки Nginx
-Отредактируйте `nginx.conf` для настройки:
-- Upstream серверов
-- Алгоритма балансировки
-- Проверок здоровья
+---
 
-### Метрики Prometheus
-Отредактируйте `prometheus.yml` для добавления:
-- Новых целей сбора метрик
-- Кастомных метрик
-- Интервалов сбора данных
+# 🧠 Цель проекта
 
-## Производительность
+Репозиторий показывает постепенную эволюцию DevOps-инфраструктуры:
 
-Протестировано с:
-- 4 одновременных контейнера лендингов
-- Балансировка Round-robin
-- Время отклика < 10мс
-- Развертывание без простоев
+```
+01 → Load Balancer + Monitoring
+02 → Smart Router + Traffic Routing
+```
 
+Фокус — на инфраструктуре вокруг traffic systems, а не на самих трекерах.
+---
 
-## Планы улучшений
-- [ ] Поддержка SSL/TLS
-- [ ] Автомасштабирование на основе нагрузки
-- [ ] Геомаршрутизация
-- [ ] Интеграция с CDN
-- [ ] Автоматические бэкапы
+# 👤 Автор
 
-
-## Автор
-tragic TG - @trell
+tragic TG — @trell
