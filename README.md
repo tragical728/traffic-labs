@@ -1,268 +1,135 @@
+# Инфраструктура для обработки трафика
 
-# Traffic Labs - Edge Traffic Infrastructure
-
-Набор лабораторных стендов вокруг одной архитектуры обработки трафика.
-Основная цель проекта - показать не лендинги, а инфраструктуру вокруг
-них: роутинг, проксирование, логические слои, наблюдаемость и
-автоматизацию.
-=======
-# Traffic Labs from @trell
-
-Основная идея — показать не отдельные сервисы, а архитектуру обработки трафика через несколько независимых слоёв: edge routing, decision layer и delivery layer.
-Проект не про лендинги как продукт. Лендинги используются только как backend для демонстрации инфраструктурного поведения.
-
-Проект не имитирует production полностью, но повторяет архитектурные
-принципы, которые используются в edge-системах обработки трафика.
+Проект собран как набор лабораторных стендов вокруг одной архитектуры.
+Главный фокус --- инфраструктура и поведение прокси-цепочки, а не сами
+лендинги.
 
 ------------------------------------------------------------------------
 
-## Архитектура
+### Общая схема
 
-Трафик не попадает напрямую на лендинг. Он проходит через несколько
+Трафик не идёт напрямую на лендинг. Он проходит через несколько
 независимых слоёв:
 
-Client ↓ Router (edge слой) ↓ Tracker (decision слой) ↓ Load Balancer
-(delivery слой) ↓ Landing pool
+Client ↓ Router (edge слой) ↓ Tracker (логический слой) ↓ Load Balancer
+↓ Landing pool (landing1, landing2, landing3)
 
-Bot traffic → Safe Landing
-=======
-## Архитектурный обзор
+Bot-трафик └──→ Safe Landing
 
-Вместо одного reverse-proxy используется цепочка сервисов с разделённой ответственностью:
-
-```
-Client
-   ↓
-Router (Edge Layer)
-   ↓
-Tracker (Decision Layer)
-   ↓
-Load Balancer (Delivery Layer)
-   ↓
-Landing Pool
-
-Bot traffic
-   └──→ Safe Landing
-```
-
-Отдельно работает monitoring стек:
-
-```
-nginx-exporter → Prometheus → Grafana
-```
-
-Каждый слой выполняет только одну задачу и не знает о внутренней логике
-остальных.
+Каждый слой отвечает только за свою задачу.
 
 ------------------------------------------------------------------------
 
-## Слои инфраструктуры
+### Назначение слоёв
 
-### Router --- Edge Layer
+## Router
 
-Первая точка входа.
+Точка входа в систему.
 
-Router принимает внешний трафик (порт 8085) и выполняет первичное
-решение:
-=======
-## Почему архитектура разбита на слои
+-   принимает входящий трафик (порт 8085)
+-   выполняет базовую фильтрацию по User-Agent
+-   ботов отправляет на safe landing
+-   обычные запросы проксирует в tracker
 
-В реальных traffic-системах edge routing, логика решений и доставка трафика часто разделяются.
-Этот проект повторяет подобный подход в упрощённом виде.
-
-* Router — точка входа и первичная фильтрация
-* Tracker — логический слой, принимающий решения о маршрутизации
-* Load Balancer — отвечает только за распределение нагрузки
-* Monitoring — вынесен отдельно, чтобы не смешивать observability с routing
-
-Такой подход упрощает развитие инфраструктуры и позволяет масштабировать слои независимо.
-
----
-
-## Назначение компонентов
-
-### Router
-
-Edge слой.
-
-* принимает входящий трафик (порт 8085)
-* фильтрует User-Agent
-* направляет ботов на safe landing
-* передаёт основной трафик в tracker
-* отдаёт `/nginx_status` для exporter
-
--   анализ User-Agent
--   разделение bot / human
--   проксирование в tracker или safe landing
-
-Router намеренно максимально простой. Он не занимается балансировкой и
-не содержит бизнес-логики.
+Router максимально простой и не содержит логики балансировки.
 
 ------------------------------------------------------------------------
 
-### Tracker --- Decision Layer
+## Tracker
 
-Промежуточный логический слой между edge и delivery.
+Логический слой между edge и доставкой.
 
-Задачи tracker:
-=======
-### Tracker
+Зачем он нужен:
 
-Decision слой.
+-   отделяет принятие решений от edge-роутера
+-   пишет decision-логи
+-   позволяет расширять логику без изменения router
 
-* отделяет edge routing от delivery
-* пишет decision-логи
-* проксирует запросы в load balancer
-* демонстрирует архитектуру multi-layer routing
-
--   логирование принятых решений
--   изоляция логики от router
--   проксирование трафика дальше
-
-Tracker нужен, чтобы router оставался лёгким и не превращался в монолит.
+Tracker получает запрос от router и проксирует его дальше.
 
 ------------------------------------------------------------------------
 
-### Load Balancer --- Delivery Layer
-=======
-### Load Balancer
+## Load Balancer
 
-Delivery слой.
-
-* round-robin между landing1 / landing2 / landing3
-* не содержит логики фильтрации
-* отвечает только за распределение нагрузки
-
-Отвечает только за распределение нагрузки:
+Отвечает только за распределение нагрузки.
 
 -   round-robin между landing контейнерами
--   никакой фильтрации
--   никакой логики bot/human
+-   не знает ничего о ботах или фильтрации
+-   выполняет роль delivery слоя
 
 ------------------------------------------------------------------------
 
-### Landing Pool
+## Safe Landing
 
-Минимальные backend лендинги. Используются только как демонстрационные
-сервисы.
-=======
-### Safe Landing
+Отдельный fallback endpoint.
 
-Fallback endpoint.
+Используется для:
 
-Используется для bot traffic и тестирования маршрутизации.
-
-------------------------------------------------------------------------
-
-### Safe Landing
-
-Отдельный fallback endpoint для bot traffic и проверок.
+-   bot traffic
+-   проверок
+-   резервного ответа
 
 ------------------------------------------------------------------------
 
-=======
-### Monitoring
+## Monitoring
 
-Monitoring вынесен в отдельный стек:
+Prometheus и Grafana вынесены в отдельный стек.
 
 edge-stack != monitoring
 
-Мониторинг не зависит от реализации роутинга и может использоваться
-другими сервисами.
+Мониторинг не зависит от конкретной реализации роутинга.
 
 ------------------------------------------------------------------------
 
 ## Control Plane --- Ansible
 
-Ansible используется как единый источник истины.
-=======
-* nginx-prometheus-exporter
-* Prometheus
-* Grafana
+В проект добавлена автоматизация через Ansible.
 
-Exporter собирает метрики Router через `/nginx_status`.
-
-Используется Grafana dashboard:
-
-```
-ID: 12708
-```
-
----
-
-## Структура репозитория
-
-```
-traffic-labs/
-├── ansible/              # авто-деплой инфраструктуры
-├── edge-stack/
-│   ├── landing/
-│   ├── safe-landing/
-│   ├── tracker/
-│   ├── logs/             # runtime логи (игнорируются git)
-│   ├── router-nginx.conf
-│   ├── lb-nginx.conf
-│   └── docker-compose.yml
-├── monitoring/
-│   ├── docker-compose.yml
-│   └── prometheus.yml
-└── README.md
-```
-
-Он:
+Ansible используется как единый источник истины:
 
 -   генерирует nginx конфиги из templates
 -   генерирует docker-compose
 -   управляет жизненным циклом инфраструктуры
 
-deploy.yml → запуск\
-stop.yml → остановка\
-restart.yml → рестарт
+deploy.yml --- поднять всю инфраструктуру\
+stop.yml --- остановить всё\
+restart.yml --- полный перезапуск стеков
 
 Файлы внутри edge-stack считаются generated.
-=======
-## Что демонстрирует проект
-
-* multi-layer nginx routing
-* decision layer между edge и delivery
-* fallback routing для bot traffic
-* persistent logging через bind volumes
-* сбор runtime метрик nginx через exporter
-* отдельный monitoring стек
-* авто-деплой через Ansible
 
 ------------------------------------------------------------------------
 
-## Структура репозитория
+### Структура репозитория
 
 traffic-labs/ ├── ansible/ │ ├── templates/ │ ├── group_vars/ │ ├──
-deploy.yml │ ├── stop.yml │ ├── restart.yml │ └── inventory.ini │ ├──
+deploy.yml │ ├── stop.yml │ ├── restart.yml │ └── inventory.ini ├──
 edge-stack/ │ ├── landing/ │ ├── safe-landing/ │ ├── tracker/ │ ├──
 logs/ │ ├── docker-compose.yml │ ├── router-nginx.conf │ └──
-lb-nginx.conf │ ├── monitoring/ │ ├── docker-compose.yml │ └──
-prometheus.yml │ └── README.md
-=======
-## Запуск
-
-### Monitoring
+lb-nginx.conf ├── monitoring/ │ ├── docker-compose.yml │ └──
+prometheus.yml └── README.md
 
 ------------------------------------------------------------------------
 
-## Быстрый старт
+### Что здесь демонстрируется
 
-Запуск всей инфраструктуры:
-=======
-```
-Prometheus  — http://localhost:9090
-Grafana     — http://localhost:3000
-Exporter    — http://localhost:9113/metrics
-```
+-   цепочка reverse proxy из нескольких nginx
+-   разделение edge / logic / delivery слоёв
+-   decision logging
+-   fallback routing
+-   постоянные логи через bind volumes
+-   observability через Prometheus и Grafana
+-   автоматизация инфраструктуры через Ansible
+
+Лендинги здесь минимальные --- они нужны только для демонстрации
+инфраструктуры.
+
+------------------------------------------------------------------------
+
+### Запуск через Ansible
 
 ansible-playbook -i inventory.ini deploy.yml
 
 Остановка:
-=======
-### Edge Stack
 
 ansible-playbook -i inventory.ini stop.yml
 
@@ -272,69 +139,47 @@ ansible-playbook -i inventory.ini restart.yml
 
 ------------------------------------------------------------------------
 
-## Проверка роутинга
-=======
-### Авто-деплой
+### Ручной запуск (без Ansible)
 
-```
-ansible-playbook -i ansible/inventory.ini ansible/deploy.yml
-```
+cd monitoring docker compose up -d
 
-Playbook поднимает monitoring и edge-stack.
+cd edge-stack docker compose up -d --build
 
----
+Точка входа:
 
-## Проверка маршрутизации
+http://localhost:8085
 
-Human traffic:
+------------------------------------------------------------------------
 
-curl -A "Mozilla" localhost:8085
+### Проверка работы роутинга
 
-Bot traffic:
+curl -A "Mozilla" localhost:8085 curl -A "googlebot" localhost:8085
 
-curl -A "googlebot" localhost:8085
-
-Mozilla → router → tracker → load balancer → landing\
+Mozilla → router → tracker → load balancer → landing pool\
 googlebot → router → safe landing
 
 ------------------------------------------------------------------------
-=======
-Ожидаемый flow:
 
-```
-Mozilla  → Router → Tracker → LoadBalancer → Landing
-googlebot → Router → Safe Landing
-```
+### Логи
 
-## Логи
+edge-stack/logs/router/ edge-stack/logs/tracker/ edge-stack/logs/lb/
 
-edge-stack/logs/router/\
-edge-stack/logs/tracker/\
-edge-stack/logs/lb/
-
-По логам можно восстановить полный flow запроса:
-
-=======
-## Логи
-
-Каждый слой пишет собственные access-логи:
-
-```
-logs/router/
-logs/tracker/
-logs/lb/
-```
-
-Логи показывают путь запроса через инфраструктуру:
-
-```
 ROUTER → TRACKER → LB → LANDING
 
 ------------------------------------------------------------------------
 
-## Автор
+### Почему добавлен Tracker
 
-tragic / @trell
-=======
+Tracker --- отдельный логический слой.
 
+Он нужен для того, чтобы:
 
+-   не перегружать router сложной логикой
+-   централизовать decision routing
+-   иметь отдельные decision-логи
+
+------------------------------------------------------------------------
+
+### Спасибо за внимание
+
+Усердно made by @trell
