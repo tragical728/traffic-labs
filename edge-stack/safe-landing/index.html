@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Safe Landing — machine-readable</title>
+  <meta name="robots" content="index,follow">
+  <meta name="description" content="Страница для парсеров и ботов.">
+  <link rel="canonical" href="https://example.com/safe-landing/">
+  <link rel="sitemap" type="application/xml" href="/sitemap.xml">
+
+  <!-- Primary structured data for crawlers -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "name": "Safe Landing",
+    "url": "https://example.com/safe-landing/",
+    "description": "Страница для парсеров и ботов."
+  }
+  </script>
+
+  <!-- Machine-readable payload for bots that consume plain JSON -->
+  <script type="application/json" id="page-data">
+  {"id":"safe-landing","title":"Safe Landing","published":true,"tags":["bots","machine-readable"]}
+  </script>
+</head>
+<body>
+  <!-- Minimal human-facing markup; main content consumed by bots -->
+  <main aria-hidden="true">
+    <h1 hidden>Safe Landing</h1>
+    <p hidden>Данные доступны в JSON-LD и application/json.</p>
+  </main>
+</body>
+</html>

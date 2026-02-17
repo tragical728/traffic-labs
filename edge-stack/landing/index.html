@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Danek Kriptan - Современное решение для управления трафиком</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            color: #1a1a1a;
+            line-height: 1.6;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        nav {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 30px;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            transition: opacity 0.3s;
+        }
+
+        nav a:hover {
+            opacity: 0.8;
+        }
+
+        .hero {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 100px 20px;
+            text-align: center;
+        }
+
+        .hero-content {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .hero h1 {
+            font-size: 48px;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+
+        .hero p {
+            font-size: 20px;
+            margin-bottom: 40px;
+            opacity: 0.95;
+        }
+
+        .cta-button {
+            background: white;
+            color: #667eea;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            display: inline-block;
+            text-decoration: none;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .features {
+            max-width: 1200px;
+            margin: 80px auto;
+            padding: 0 20px;
+        }
+
+        .section-title {
+            font-size: 36px;
+            text-align: center;
+            margin-bottom: 60px;
+            color: #1a1a1a;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 40px;
+        }
+
+        .feature-card {
+            background: #f8f9fa;
+            padding: 40px;
+            border-radius: 12px;
+            text-align: center;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.1);
+        }
+
+        .feature-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+
+        .feature-card h3 {
+            font-size: 22px;
+            margin-bottom: 15px;
+            color: #667eea;
+        }
+
+        .feature-card p {
+            color: #666;
+            line-height: 1.8;
+        }
+
+        .benefits {
+            background: #f8f9fa;
+            padding: 80px 20px;
+            margin-top: 60px;
+        }
+
+        .benefits-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+        }
+
+        .benefits-text h2 {
+            font-size: 32px;
+            margin-bottom: 30px;
+            color: #1a1a1a;
+        }
+
+        .benefit-item {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 15px;
+        }
+
+        .benefit-item strong {
+            color: #667eea;
+            flex-shrink: 0;
+        }
+
+        .cta-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 80px 20px;
+            text-align: center;
+        }
+
+        .cta-section h2 {
+            font-size: 36px;
+            margin-bottom: 30px;
+        }
+
+        .cta-section p {
+            font-size: 18px;
+            margin-bottom: 40px;
+            opacity: 0.95;
+        }
+
+        footer {
+            background: #1a1a1a;
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 32px;
+            }
+
+            .hero p {
+                font-size: 16px;
+            }
+
+            nav ul {
+                gap: 15px;
+                font-size: 14px;
+            }
+
+            .benefits-content {
+                grid-template-columns: 1fr;
+            }
+
+            .section-title {
+                font-size: 28px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo">@trell</div>
+            <ul>
+                <li><a href="#features">Возможности</a></li>
+                <li><a href="#benefits">Преимущества</a></li>
+                <li><a href="#contact">Контакты</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <section class="hero">
+        <div class="hero-content">
+            <h1>Управляйте трафиком эффективнее</h1>
+            <p>Danek @trell - современное решение для оптимизации и контроля сетевого трафика вашего бизнеса</p>
+            <button class="cta-button">Начать не бесплатно</button>
+        </div>
+    </section>
+
+    <section class="features" id="features">
+        <h2 class="section-title">Основные возможности</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">⚡</div>
+                <h3>Высокая скорость</h3>
+                <p>Оптимизированная архитектура для минимальной задержки при обработке трафика</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🛡️</div>
+                <h3>Безопасность</h3>
+                <p>Встроенная защита от DDoS атак и других угроз кибербезопасности</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📊</div>
+                <h3>Аналитика</h3>
+                <p>Подробные отчеты и real-time статистика по использованию трафика</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🔧</div>
+                <h3>Простая интеграция</h3>
+                <p>Быстрое подключение к вашей существующей инфраструктуре</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📈</div>
+                <h3>Масштабируемость</h3>
+                <p>Растет вместе с вашим бизнесом без потери производительности</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">💬</div>
+                <h3>Поддержка 24/7</h3>
+                <p>Профессиональная техническая поддержка в любое время</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="benefits" id="benefits">
+        <div class="benefits-content">
+            <div class="benefits-text">
+                <h2>Почему Данек?</h2>
+                <div class="benefit-item">
+                    <strong>✓</strong>
+                    <span>Снижение затрат на IT инфраструктуру на 40%</span>
+                </div>
+                <div class="benefit-item">
+                    <strong>✓</strong>
+                    <span>Улучшение качества обслуживания клиентов</span>
+                </div>
+                <div class="benefit-item">
+                    <strong>✓</strong>
+                    <span>Полный контроль над сетевым потоком</span>
+                </div>
+                <div class="benefit-item">
+                    <strong>✓</strong>
+                    <span>Автоматическое распределение нагрузки</span>
+                </div>
+                <div class="benefit-item">
+                    <strong>✓</strong>
+                    <span>Прозрачная система боевых настроек</span>
+                </div>
+            </div>
+            <div>
+                <img src="https://via.placeholder.com/500x400" alt="Иллюстрация" style="border-radius: 12px; width: 100%; max-width: 500px;">
+            </div>
+        </div>
+    </section>
+
+    <section class="cta-section" id="contact">
+        <h2>Готовы оптимизировать свой трафик?</h2>
+        <p>Возьмите меня на работу я очень нищий</p>
+        <button class="cta-button">Напишите в ТГ</button>
+    </section>
+
+    <footer>
+        <p>&copy; 2026 Danek @trell. Все права защищены.</p>
+    </footer>
+</body>
+</html>

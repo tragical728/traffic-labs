@@ -1,0 +1,10 @@
+- hosts: local
+  tasks:
+    - name: Start monitoring stack
+      command: docker compose up -d
+      args:
+        chdir: ../monitoring
+    - name: Start edge stack
+      command: docker compose up -d --build
+      args:
+        chdir: ../edge-stack
