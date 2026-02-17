@@ -1,180 +1,218 @@
-# Traffic Infrastructure Lab
+# Инфраструктура для обработки трафика
 
-Production-like лаборатория инфраструктуры для высоконагруженного трафика.
-
-Репозиторий разделён на независимые лабы, каждая из которых показывает отдельный инфра уровень.
-
----
-
-# 🧱 Архитектура репозитория
-
-```
-traffic-infrastructure-lab
-│
-├── 01-load-balancer   → Multi-container инфраструктура + мониторинг
-└── 02-smart-router    → Умный роутинг трафика + backup landing
-```
+Проект собран как набор лабораторных стендов вокруг одной архитектуры.
+Главный фокус — инфраструктура и поведение прокси-цепочки.
 
 ---
 
-# 🔥 Labs
+### Общая схема
 
----
-
-## 01 — Nginx Load Balancer Infrastructure
-
-Production-like инфраструктура балансировки трафика.
-
-### Архитектура
-
-```
-Client Request
-      ↓
-   Nginx LB (Port 8080)
-      ↓
-   ┌──────┴──────┬──────────┐
-   ↓             ↓          ↓
-Landing1     Landing2   Landing3...
-   ↓             ↓          ↓
-nginx-exporter → Prometheus → Grafana
-```
-
-### Возможности
-
-* Docker контейнеризация лендингов
-* Nginx upstream load balancing
-* Авто-деплой новых лендингов
-* Prometheus + Grafana мониторинг
-* Масштабируемая архитектура
-
-### Стек
-
-* Docker / Docker Compose
-* Nginx (Alpine)
-* Prometheus
-* Grafana
-* Python (auto deploy script)
-
----
-
-## 02 — Smart Traffic Router
-
-Лаборатория умного reverse proxy routing.
-
-### Архитектура
+Трафик не идёт напрямую на лендинг.
+Он проходит через несколько независимых слоёв:
 
 ```
 Client
    ↓
-Nginx Smart Router
-   ↓            ↓
-Main Landing   Backup Landing
+Router (edge слой)
+   ↓
+Tracker (логический слой)
+   ↓
+Load Balancer
+   ↓
+Landing pool (landing1, landing2, landing3)
+
+Bot-трафик
+   └──→ Safe Landing
 ```
 
-### Что демонстрируется
-
-* Routing по User-Agent
-* Backup fallback логика
-* Reverse proxy chaining
-* Access logs (IP + UA + upstream)
-* Docker network isolation
-
-### Основная идея
-
-Router принимает входящий трафик и принимает решение:
-
-* бот → backup landing
-* обычный пользователь → основной поток
+Каждый слой отвечает только за свою задачу.
 
 ---
 
-# 🚀 Быстрый старт
+### Назначение слоёв
 
-## Требования
+## Router
 
-* Docker Desktop
-* Python 3.x
+Точка входа в систему.
+
+* принимает входящий трафик (порт 8085)
+* выполняет базовую фильтрацию по User-Agent
+* ботов отправляет на safe landing
+* обычные запросы проксирует в tracker
+
+Router максимально простой и не содержит логики балансировки.
 
 ---
 
-## Запуск 01-load-balancer
+## Tracker
+
+Логический слой между edge и доставкой.
+
+Зачем он нужен:
+
+* отделяет принятие решений от edge-роутера
+* пишет decision-логи
+* позволяет расширять логику без изменения router
+
+Tracker получает запрос от router и решает, куда его отправить дальше.
+
+---
+
+## Load Balancer
+
+Отвечает только за распределение нагрузки.
+
+* round-robin между landing контейнерами
+* не знает ничего о ботах или фильтрации
+* выполняет роль delivery слоя
+
+---
+
+## Safe Landing
+
+Отдельный fallback endpoint.
+
+Используется для:
+
+* bot traffic
+* проверок
+* резервного ответа
+
+---
+
+## Monitoring
+
+Prometheus и Grafana вынесены в отдельный стек.
+
+Это сделано специально, чтобы показать разделение инфраструктуры:
 
 ```
-cd 01-load-balancer
-docker compose up -d --build
+edge-stack != monitoring
+```
+
+Мониторинг не зависит от конкретной реализации роутинга.
+
+---
+
+### Структура репозитория
+
+```
+traffic-labs/
+├── ansible/        # примеры автоматизации
+├── edge-stack/
+│   ├── landing/
+│   ├── safe-landing/
+│   ├── tracker/
+│   ├── logs/       # runtime логи (не коммитятся)
+│   ├── docker-compose.yml
+│   ├── router-nginx.conf
+│   └── lb-nginx.conf
+├── monitoring/
+│   ├── docker-compose.yml
+│   └── prometheus.yml
+└── README.md
+```
+
+---
+
+### Что здесь демонстрируется
+
+* цепочка reverse proxy из нескольких nginx
+* разделение edge / logic / delivery слоёв
+* decision logging
+* fallback routing
+* постоянные логи через bind volumes
+* базовая observability через Prometheus и Grafana
+
+Лендинги здесь минимальные — они нужны только для демонстрации инфраструктуры.
+
+---
+
+### Запуск
+
+## 1. Мониторинг
+
+```
+cd monitoring
+docker compose up -d
 ```
 
 Доступ:
 
-* Лендинги: http://localhost:8080
-* Prometheus: http://localhost:9090
-* Grafana: http://localhost:3000
+* Prometheus — http://localhost:9090
+* Grafana — http://localhost:3000
 
 ---
 
-## Запуск 02-smart-router
+## 2. Edge Stack
 
 ```
-cd 02-smart-router
+cd edge-stack
 docker compose up -d --build
 ```
 
-Доступ:
+Точка входа:
 
-* Router: http://localhost:8081
+```
+http://localhost:8085
+```
 
 ---
 
-# ⚙️ Авто-деплой лендинга (01-lab)
+### Проверка работы роутинга
+
+Обычный запрос:
 
 ```
-python auto-deploy.py landing5
+curl -A "Mozilla" localhost:8085
 ```
 
-Скрипт автоматически:
+Бот:
 
-* создаёт новый контейнер
-* обновляет upstream
-* пересобирает инфраструктуру
-* обновляет мониторинг
+```
+curl -A "googlebot" localhost:8085
+```
+
+Ожидаемое поведение:
+
+* Mozilla → router → tracker → load balancer → landing pool
+* googlebot → router → safe landing
 
 ---
 
-# 📊 Мониторинг
+### Логи
 
-### Grafana
-
-1. http://localhost:3000
-2. admin / admin
-3. Prometheus datasource:
+Каждый слой пишет собственные access-логи:
 
 ```
-http://prometheus:9090
+edge-stack/logs/router/
+edge-stack/logs/tracker/
+edge-stack/logs/lb/
 ```
 
-Можно использовать dashboard ID: 12708
+Логи показывают не просто HTTP-доступ, а путь запроса через инфраструктуру.
 
-### Ключевые метрики
+По ним можно восстановить полный flow:
 
-* Requests per second
-* Active connections
-* Upstream status
-* Traffic distribution
+```
+ROUTER → TRACKER → LB → LANDING
+```
 
 ---
 
-# 🧠 Цель проекта
+### Почему добавлен Tracker
 
-Репозиторий показывает постепенную эволюцию DevOps-инфраструктуры:
+Tracker — это отдельный логический слой.
 
-```
-01 → Load Balancer + Monitoring
-02 → Smart Router + Traffic Routing
-```
+Он нужен для того, чтобы:
 
-Фокус — на инфраструктуре вокруг traffic systems, а не на самих трекерах.
+* не перегружать router сложной логикой
+* централизовать decision routing
+* иметь отдельные логи принятых решений
+
+Такую модель часто используют в edge-инфраструктурах, где routing развивается со временем.
+
 ---
 
-# 👤 Автор
-
-tragic TG — @trell
+###  Спасибо за внимание
+### Усердно made by @trell 
