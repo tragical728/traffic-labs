@@ -12,7 +12,9 @@
 независимых слоёв:
 
 Client ↓ Router (edge слой) ↓ Tracker (логический слой) ↓ Load Balancer
-Bot-трафик └──→ Safe Landing                                  └──→ Landing pool (landing1, landing2, landing3)
+
+Router (edge слой) ──→ Bot-трафик ──→ Safe Landing                
+Load Balancer ──→ Landing pool (landing1, landing2, landing3)
 
 
 Каждый слой отвечает только за свою задачу.
@@ -182,4 +184,5 @@ Tracker --- отдельный логический слой.
 ### Спасибо за внимание
 
 Усердно made by @trell
+
 
